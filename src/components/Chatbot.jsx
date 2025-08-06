@@ -1,11 +1,11 @@
 // frontend/src/components/Chatbot.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { authenticatedFetch } from '../api';
-import { useLocalStorage } from '../hooks/useLocalStorage'; // Import the new hook
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { marked } from 'marked'; // Import the marked library
 
 const Chatbot = () => {
   const [query, setQuery] = useState('');
-  // Use the custom hook for conversation, giving it a unique key
   const [conversation, setConversation] = useLocalStorage('chatbot-conversation', []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -20,7 +20,6 @@ const Chatbot = () => {
     if (!query.trim()) return;
 
     const userMessage = { role: 'user', content: query };
-    // We pass a function to setConversation to get the most up-to-date state
     setConversation(prev => [...prev, userMessage]);
     const currentQuery = query;
     setQuery('');
@@ -32,7 +31,9 @@ const Chatbot = () => {
         method: 'POST',
         body: JSON.stringify({ query: currentQuery }),
       });
-      const botMessage = { role: 'bot', content: data.response };
+      // Parse the Markdown response into an HTML string
+      const parsedResponse = marked.parse(data.response);
+      const botMessage = { role: 'bot', content: parsedResponse };
       setConversation(prev => [...prev, botMessage]);
     } catch (err) {
       setError(err.message || 'An unexpected error occurred.');
@@ -56,7 +57,8 @@ const Chatbot = () => {
                     : 'bg-gray-200 text-gray-800'
                 }`}
               >
-                {msg.content}
+                {/* Render the HTML string */}
+                <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: msg.content }} />
               </div>
             </div>
           ))}

@@ -1,14 +1,14 @@
 // frontend/src/components/Summarizer.jsx
 import React, { useState } from 'react';
 import { authenticatedFetch } from '../api';
-import { useLocalStorage } from '../hooks/useLocalStorage'; // Import the new hook
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { marked } from 'marked'; // Import the marked library
 
 const Summarizer = () => {
   const [text, setText] = useState('');
   const [summary, setSummary] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  // Use the custom hook for history, giving it a unique key
   const [history, setHistory] = useLocalStorage('summarizer-history', []);
 
   const handleSummarize = async () => {
@@ -25,9 +25,10 @@ const Summarizer = () => {
         method: 'POST',
         body: JSON.stringify({ text }),
       });
-      setSummary(data.summary);
-      // Add to history, keeping the most recent 5 items
-      setHistory(prevHistory => [{ request: text, response: data.summary }, ...prevHistory].slice(0, 5));
+      // Parse the Markdown response into an HTML string
+      const parsedSummary = marked.parse(data.summary);
+      setSummary(parsedSummary);
+      setHistory(prevHistory => [{ request: text, response: parsedSummary }, ...prevHistory].slice(0, 5));
     } catch (err) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
@@ -65,7 +66,8 @@ const Summarizer = () => {
         {summary && (
           <div className="mt-6 rounded-md bg-gray-50 p-4">
             <h4 className="font-semibold text-gray-800">Generated Summary:</h4>
-            <p className="mt-2 whitespace-pre-wrap text-gray-700">{summary}</p>
+            {/* Render the HTML string */}
+            <div className="prose prose-sm mt-2 max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: summary }} />
           </div>
         )}
       </div>
@@ -79,7 +81,7 @@ const Summarizer = () => {
                 <p className="mb-2 text-sm font-semibold text-gray-500">Request:</p>
                 <p className="mb-3 line-clamp-3 text-gray-700">{item.request}</p>
                 <p className="mb-2 text-sm font-semibold text-gray-500">Response:</p>
-                <p className="whitespace-pre-wrap text-gray-700">{item.response}</p>
+                <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.response }} />
               </li>
             ))}
           </ul>

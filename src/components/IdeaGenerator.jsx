@@ -1,14 +1,14 @@
 // frontend/src/components/IdeaGenerator.jsx
 import React, { useState } from 'react';
 import { authenticatedFetch } from '../api';
-import { useLocalStorage } from '../hooks/useLocalStorage'; // Import the new hook
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { marked } from 'marked'; // Import the marked library
 
 const IdeaGenerator = () => {
   const [topic, setTopic] = useState('');
   const [ideas, setIdeas] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  // Use the custom hook for history, giving it a unique key
   const [history, setHistory] = useLocalStorage('ideagenerator-history', []);
 
   const handleGenerateIdeas = async () => {
@@ -25,9 +25,10 @@ const IdeaGenerator = () => {
         method: 'POST',
         body: JSON.stringify({ topic }),
       });
-      setIdeas(data.ideas);
-      // Add to history, keeping the most recent 5 items
-      setHistory(prevHistory => [{ request: topic, response: data.ideas }, ...prevHistory].slice(0, 5));
+      // Parse the Markdown response into an HTML string
+      const parsedIdeas = marked.parse(data.ideas);
+      setIdeas(parsedIdeas);
+      setHistory(prevHistory => [{ request: topic, response: parsedIdeas }, ...prevHistory].slice(0, 5));
     } catch (err) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
@@ -65,7 +66,8 @@ const IdeaGenerator = () => {
         {ideas && (
           <div className="mt-6 rounded-md bg-gray-50 p-4">
             <h4 className="font-semibold text-gray-800">Generated Ideas:</h4>
-            <div className="prose prose-sm mt-2 max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: ideas.replace(/\n/g, '<br />') }} />
+            {/* Render the HTML string */}
+            <div className="prose prose-sm mt-2 max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: ideas }} />
           </div>
         )}
       </div>
@@ -79,7 +81,7 @@ const IdeaGenerator = () => {
                 <p className="mb-2 text-sm font-semibold text-gray-500">Topic:</p>
                 <p className="mb-3 text-gray-700">{item.request}</p>
                 <p className="mb-2 text-sm font-semibold text-gray-500">Generated Ideas:</p>
-                <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.response.replace(/\n/g, '<br />') }} />
+                <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.response }} />
               </li>
             ))}
           </ul>

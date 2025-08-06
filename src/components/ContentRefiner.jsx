@@ -1,7 +1,8 @@
 // frontend/src/components/ContentRefiner.jsx
 import React, { useState } from 'react';
 import { authenticatedFetch } from '../api';
-import { useLocalStorage } from '../hooks/useLocalStorage'; // Import the new hook
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { marked } from 'marked'; // Import the marked library
 
 const ContentRefiner = () => {
   const [text, setText] = useState('');
@@ -9,7 +10,6 @@ const ContentRefiner = () => {
   const [refinedText, setRefinedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  // Use the custom hook for history, giving it a unique key
   const [history, setHistory] = useLocalStorage('contentrefiner-history', []);
 
   const handleRefineContent = async () => {
@@ -26,9 +26,10 @@ const ContentRefiner = () => {
         method: 'POST',
         body: JSON.stringify({ text, instruction }),
       });
-      setRefinedText(data.refined_text);
-      // Add to history, keeping the most recent 5 items
-      setHistory(prevHistory => [{ request: { text, instruction }, response: data.refined_text }, ...prevHistory].slice(0, 5));
+      // Parse the Markdown response into an HTML string
+      const parsedText = marked.parse(data.refined_text);
+      setRefinedText(parsedText);
+      setHistory(prevHistory => [{ request: { text, instruction }, response: parsedText }, ...prevHistory].slice(0, 5));
     } catch (err) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
@@ -75,7 +76,8 @@ const ContentRefiner = () => {
         {refinedText && (
           <div className="mt-6 rounded-md bg-gray-50 p-4">
             <h4 className="font-semibold text-gray-800">Refined Text:</h4>
-            <p className="mt-2 whitespace-pre-wrap text-gray-700">{refinedText}</p>
+            {/* Render the HTML string */}
+            <div className="prose prose-sm mt-2 max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: refinedText }} />
           </div>
         )}
       </div>
@@ -91,7 +93,7 @@ const ContentRefiner = () => {
                  <p className="mb-2 text-sm font-semibold text-gray-500">Instruction:</p>
                 <p className="mb-3 text-gray-700">{item.request.instruction}</p>
                 <p className="mb-2 text-sm font-semibold text-gray-500">Refined Text:</p>
-                <p className="whitespace-pre-wrap text-gray-700">{item.response}</p>
+                <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.response }} />
               </li>
             ))}
           </ul>
