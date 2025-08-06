@@ -1,12 +1,48 @@
-# React + Vite
+Reely AI - Frontend (React + Vite)
+This directory contains the React frontend for the Reely AI application. It is a modern single-page application built with Vite and styled with Tailwind CSS. It provides a responsive user interface for interacting with the AI content tools and handles user authentication via Firebase.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🚀 Getting Started
+Prerequisites
+Node.js v20+: Ensure you have a compatible version of Node.js and npm installed.
 
-Currently, two official plugins are available:
+Firebase Project: A Firebase project with Google Sign-In enabled in the Authentication section.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+⚙️ Local Setup and Installation
+1. Navigate to the Frontend Directory
+All commands should be run from within the frontend folder.
 
-## Expanding the ESLint configuration
+cd frontend
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. Configure Firebase
+You need to connect the frontend to your Firebase project.
+
+In the frontend/src/ directory, locate the firebase.js file.
+
+Replace the placeholder firebaseConfig object with your actual project credentials. You can find these in your Firebase project settings under Project Settings > General > Your apps > SDK setup and configuration.
+
+// frontend/src/firebase.js
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+3. Install Dependencies
+This command will install all the necessary Node.js packages defined in package.json.
+
+npm install
+
+4. Run the Development Server
+This command starts the Vite development server with hot-reloading.
+
+npm run dev
+
+The frontend application will be available at http://localhost:5173.
+
+☁️ Deployment
+This frontend is configured for easy deployment on services like Vercel or Firebase Hosting.
+
+Before deploying, ensure the API_BASE_URL constant in frontend/src/api.js is updated to point to your live backend URL (e.g., your Render service URL).
